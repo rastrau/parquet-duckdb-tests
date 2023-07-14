@@ -1,0 +1,25 @@
+---
+title: "Parquet and DuckDB Tests"
+author: "Ralph Straumann"
+format: html
+---
+
+# Foundations
+
+
+
+# Running Code
+
+
+```{r}
+
+```
+
+
+
+```{r}
+#| echo: false
+
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
