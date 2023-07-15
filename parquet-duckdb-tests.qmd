@@ -4,22 +4,221 @@ author: "Ralph Straumann"
 format: html
 ---
 
-# Foundations
-
-
-
-# Running Code
-
-
+# ...
 ```{r}
+library(readr)
+library(dplyr)
+library(janitor)
+library(here)
+library(arrow)
+
+# Datensatz 'Smart Climate Feinstaubmessungen', 41.3 mb
+# Quelle: https://data.bs.ch/explore/dataset/100081
+particulates_data_raw_url <- 'https://github.com/rastrau/parquet-duckdb-tests/raw/main/data/100081.csv'
+
+# Datensatz 'Rheinmesswerte kontinuierlich', 22 mb
+# Quelle: https://data.bs.ch/explore/dataset/100046
+rhine_data_url <- 'https://github.com/rastrau/parquet-duckdb-tests/raw/main/data/100046.csv'
+
 
 ```
 
-
-
 ```{r}
-#| echo: false
+particulates_df <- read_csv2(particulates_data_raw_url) %>%
+  clean_names() %>%
+  mutate(pm2_5 = as.numeric(pm2_5))
+
+write_csv2(particulates_df, here('data', '100081-cleaned.csv'))
+file_size_csv <- file.size(here('data', '100081-cleaned.csv')) / 1024 / 1024
+
+write_parquet(particulates_df, here('data', '100081-cleaned.parquet'))
+file_size_parquet <- file.size(here('data', '100081-cleaned.parquet')) / 1024 / 1024
+
+# Next, we upload these files to GitHub, like the others
+
+particulates_data_url <- 'https://github.com/rastrau/parquet-duckdb-tests/raw/main/data/100081-cleaned.csv'
+particulates_data_parquet_url <- 'https://github.com/rastrau/parquet-duckdb-tests/raw/main/data/100081-cleaned.parquet'
 
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+```{r}
+start_time <- Sys.time()
+particulates_df <- read_csv2(particulates_data_raw_url) %>%
+  filter(`Station Name` == 'Basel St. Johanns-Platz') %>%
+  group_by(`Station Name`) %>%
+  summarise(start = min(Zeitstempel),
+            ende = max(Zeitstempel),
+            mean_pm25 = mean(PM2.5))
+end_time <- Sys.time()
+time_taken <- end_time - start_time
+time_taken
+
+```
+
+```{r}
+# Lesen der CSV-Datei von GitHub, Filtern und Transformieren
+
+start_time <- Sys.time()
+particulates_df <- read_csv2(particulates_data_url,
+                             show_col_types = FALSE) %>%
+  filter(station_name == 'Basel St. Johanns-Platz') %>%
+  group_by(station_name) %>%
+  summarise(start = min(zeitstempel),
+            ende = max(zeitstempel),
+            mean_pm25 = mean(pm2_5))
+end_time <- Sys.time()
+time_taken <- end_time - start_time
+time_taken
+
+```
+
+```{r}
+# Lesen der Parquet-Datei von GitHub, Filtern und Transformieren
+
+start_time <- Sys.time()
+particulates_df <- read_parquet(particulates_data_parquet_url) %>%
+  filter(station_name == 'Basel St. Johanns-Platz') %>%
+  group_by(station_name) %>%
+  summarise(start = min(zeitstempel),
+            ende = max(zeitstempel),
+            mean_pm25 = mean(pm2_5))
+end_time <- Sys.time()
+time_taken <- end_time - start_time
+time_taken
+
+```
+
+# Testen von lokalem Lesen: CSV, Parquet, CSV via DuckDB, Parquet via DuckDB
+
+
+```{r}
+library(DBI)
+library(duckdb)
+library(dbplyr)
+```
+
+```{r}
+
+city_climate_data_csv_path <- here('data', '100009.csv')
+
+city_climate_df <- read_csv2(city_climate_data_csv_path) %>% 
+  clean_names() %>%
+  mutate(lufttemperatur = as.numeric(lufttemperatur),
+         regen_in_1_h = as.numeric(regen_in_1_h),
+         regen_in_24_h = as.numeric(regen_in_24_h),
+         regen_in_48_h = as.numeric(regen_in_48_h))
+
+write_csv(city_climate_df, here('data', '100009-cleaned.csv'), na = '')
+file_size_csv <- file.size(here('data', '100009-cleaned.csv')) / 1024 / 1024
+
+write_parquet(city_climate_df, here('data', '100009-cleaned.parquet'))
+file_size_parquet <- file.size(here('data', '100009-cleaned.parquet')) / 1024 / 1024
+
+```
+
+```{r}
+# Lesen der CSV-Datei vom lokalem Filesystem, Filtern und Transformieren
+start_time <- Sys.time()
+city_climate_df <- read_csv(here('data', '100009-cleaned.csv'),
+                             show_col_types = FALSE) %>%
+  group_by(name) %>%
+  summarise(mean_lufttemperatur = mean(lufttemperatur, na.rm = TRUE),
+            sd_lufttemperatur = mean(lufttemperatur, na.rm = TRUE))
+end_time <- Sys.time()
+time_taken <- end_time - start_time
+time_taken
+
+```
+
+```{r}
+# Lesen der Parquet-Datei vom lokalem Filesystem, Filtern und Transformieren
+start_time <- Sys.time()
+city_climate_df <- read_parquet(here('data', '100009-cleaned.parquet')) %>%
+  group_by(name) %>%
+  summarise(mean_lufttemperatur = mean(lufttemperatur, na.rm = TRUE),
+            sd_lufttemperatur = mean(lufttemperatur, na.rm = TRUE))
+end_time <- Sys.time()
+time_taken <- end_time - start_time
+time_taken
+
+```
+```{r}
+# Verarbeiten der CSV-Datei vom lokalem Filesystem mit DuckDB
+start_time <- Sys.time()
+con <- dbConnect(duckdb::duckdb())
+
+city_climate_df <- tbl(con, here('data', '100009-cleaned.csv')) %>%
+  group_by(name) %>%
+  summarise(mean_lufttemperatur = mean(as.numeric(lufttemperatur), na.rm = TRUE)) %>%
+  collect()
+end_time <- Sys.time()
+time_taken <- end_time - start_time
+time_taken
+
+```
+
+```{r}
+# Verarbeiten der Parquet-Datei vom lokalem Filesystem mit DuckDB
+start_time <- Sys.time()
+con <- dbConnect(duckdb::duckdb())
+
+city_climate_df <- tbl(con, here('data', '100009-cleaned.parquet')) %>%
+  group_by(name) %>%
+  summarise(mean_lufttemperatur = mean(as.numeric(lufttemperatur), na.rm = TRUE)) %>%
+  collect()
+end_time <- Sys.time()
+time_taken <- end_time - start_time
+time_taken
+
+```
+```{r}
+library(stringr)
+```
+
+```{r}
+# Lesen der CSV-Datei vom lokalem Filesystem, Filtern und Transformieren
+start_time <- Sys.time()
+city_climate_df <- read_csv(here('data', '100009-cleaned.csv')) %>%
+  filter(str_detect(name, "^B")) %>% 
+  group_by(name) %>%
+  summarise(mean_lufttemperatur = mean(as.numeric(lufttemperatur), na.rm = TRUE))
+end_time <- Sys.time()
+time_taken <- end_time - start_time
+time_taken
+
+```
+
+```{r}
+# Verarbeiten der CSV-Datei vom lokalem Filesystem mit DuckDB
+start_time <- Sys.time()
+
+con <- dbConnect(duckdb::duckdb())
+
+city_climate_df <- tbl(con, here('data', '100009-cleaned.csv')) %>%
+  filter(str_detect(name, "^B")) %>% 
+  group_by(name) %>%
+  summarise(mean_lufttemperatur = mean(as.numeric(lufttemperatur), na.rm = TRUE)) %>%
+  collect()
+end_time <- Sys.time()
+time_taken <- end_time - start_time
+time_taken
+
+```
+
+```{r}
+# Verarbeiten der Parquet-Datei vom lokalem Filesystem mit DuckDB
+start_time <- Sys.time()
+
+con <- dbConnect(duckdb::duckdb())
+
+city_climate_df <- tbl(con, here('data', '100009-cleaned.parquet')) %>%
+  filter(str_detect(name, "^B")) %>% 
+  group_by(name) %>%
+  summarise(mean_lufttemperatur = mean(as.numeric(lufttemperatur), na.rm = TRUE)) %>%
+  collect()
+end_time <- Sys.time()
+time_taken <- end_time - start_time
+time_taken
+
+```
+
