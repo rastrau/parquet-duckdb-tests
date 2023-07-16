@@ -1,3 +1,6 @@
+https://data.bs.ch/api/explore/v2.1/catalog/datasets/100097/exports/csv?lang=en&timezone=Europe%2FZurich&use_labels=true&delimiter=%3B
+SELECT * FROM read_csv_auto('https://data.bs.ch/api/explore/v2.1/catalog/datasets/100097/exports/csv');
+
 
 SELECT mean(lufttemperatur) as mean_lufttemperatur FROM 'C:\GitHub\rastrau\parquet-duckdb-tests\data\100009-cleaned.parquet' WHERE name ILIKE 'B%' GROUP BY name;
 SELECT mean(lufttemperatur) as mean_lufttemperatur FROM 'C:\GitHub\rastrau\parquet-duckdb-tests\data\100009-cleaned.csv' WHERE name ILIKE 'B%' GROUP BY name;
