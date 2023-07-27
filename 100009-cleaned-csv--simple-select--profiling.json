@@ -1,0 +1,32 @@
+{
+   "name":  "Query", 
+   "result": 0.472968,
+   "timing": 0.472968,
+   "cardinality": 0,
+   "extra-info": "SELECT * FROM '/Users/ralph/Documents/GitHub/rastrau/parquet-duckdb-tests/data/100009-cleaned.csv';", 
+   "timings": [
+
+   ],
+   "children": [
+    {
+      "name": "RESULT_COLLECTOR",
+      "timing":0.278158,
+      "cardinality":0,
+      "extra_info": "",
+      "timings": [
+      ],
+      "children": [
+       {
+         "name": "READ_CSV_AUTO (MULTI-THREADED)",
+         "timing":4.260034,
+         "cardinality":4076397,
+         "extra_info": "station_id\nname\nzeitstempel\nlufttemperatur\nregen_in_1_h\nregen_in_24_h\nregen_in_48_h\nkoordinaten\nstadtklima_basel_link\nunix_zeitstempel\n[INFOSEPARATOR]\nEC: 0",
+         "timings": [
+         ],
+         "children": [
+         ]
+       }
+      ]
+    }
+   ]
+}

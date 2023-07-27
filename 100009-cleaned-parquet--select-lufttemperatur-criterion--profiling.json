@@ -1,0 +1,42 @@
+{
+   "name":  "Query", 
+   "result": 0.142318,
+   "timing": 0.142318,
+   "cardinality": 0,
+   "extra-info": "SELECT * FROM '/Users/ralph/Documents/GitHub/rastrau/parquet-duckdb-tests/data/100009-cleaned.parquet' WHERE lufttemperatur < 15;", 
+   "timings": [
+
+   ],
+   "children": [
+    {
+      "name": "RESULT_COLLECTOR",
+      "timing":0.143669,
+      "cardinality":0,
+      "extra_info": "",
+      "timings": [
+      ],
+      "children": [
+       {
+         "name": "PROJECTION",
+         "timing":0.000802,
+         "cardinality":2183802,
+         "extra_info": "station_id\nname\nzeitstempel\nlufttemperatur\nregen_in_1_h\nregen_in_24_h\nregen_in_48_h\nkoordinaten\nstadtklima_basel_link\nunix_zeitstempel\n",
+         "timings": [
+         ],
+         "children": [
+          {
+            "name": "PARQUET_SCAN ",
+            "timing":0.375363,
+            "cardinality":2183802,
+            "extra_info": "lufttemperatur\nstation_id\nname\nzeitstempel\nregen_in_1_h\nregen_in_24_h\nregen_in_48_h\nkoordinaten\nstadtklima_basel_link\nunix_zeitstempel\n[INFOSEPARATOR]\nFilters: lufttemperatur<15.0 AND lufttemperatur IS NOT NULL\n\n[INFOSEPARATOR]\nEC: 0",
+            "timings": [
+            ],
+            "children": [
+            ]
+          }
+         ]
+       }
+      ]
+    }
+   ]
+}

@@ -1,0 +1,52 @@
+{
+   "name":  "Query", 
+   "result": 0.486707,
+   "timing": 0.486707,
+   "cardinality": 0,
+   "extra-info": "SELECT * FROM '/Users/ralph/Documents/GitHub/rastrau/parquet-duckdb-tests/data/100009-cleaned.csv' WHERE lufttemperatur < 15;", 
+   "timings": [
+
+   ],
+   "children": [
+    {
+      "name": "RESULT_COLLECTOR",
+      "timing":0.169225,
+      "cardinality":0,
+      "extra_info": "",
+      "timings": [
+      ],
+      "children": [
+       {
+         "name": "PROJECTION",
+         "timing":0.001077,
+         "cardinality":2183802,
+         "extra_info": "station_id\nname\nzeitstempel\nlufttemperatur\nregen_in_1_h\nregen_in_24_h\nregen_in_48_h\nkoordinaten\nstadtklima_basel_link\nunix_zeitstempel\n",
+         "timings": [
+         ],
+         "children": [
+          {
+            "name": "FILTER",
+            "timing":0.021066,
+            "cardinality":2183802,
+            "extra_info": "(lufttemperatur < 15.0)\n[INFOSEPARATOR]\nEC: 0",
+            "timings": [
+            ],
+            "children": [
+             {
+               "name": "READ_CSV_AUTO (MULTI-THREADED)",
+               "timing":4.498780,
+               "cardinality":4076397,
+               "extra_info": "lufttemperatur\nstation_id\nname\nzeitstempel\nregen_in_1_h\nregen_in_24_h\nregen_in_48_h\nkoordinaten\nstadtklima_basel_link\nunix_zeitstempel\n[INFOSEPARATOR]\nEC: 0",
+               "timings": [
+               ],
+               "children": [
+               ]
+             }
+            ]
+          }
+         ]
+       }
+      ]
+    }
+   ]
+}
